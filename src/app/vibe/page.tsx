@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Share2, RotateCcw } from "lucide-react";
+import { ArrowLeft, ArrowRight, ImageDown, RotateCcw, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { GlowButton } from "@/components/glow-button";
 import { gameMeta } from "@/lib/games";
+import { savePersona } from "@/lib/local-store";
+import { renderPersonaCard, shareImage } from "@/lib/share-card";
 import { aliasFor, PERSONAS, QUESTIONS, scoreQuiz } from "@/lib/vibe-quiz";
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -93,6 +95,27 @@ function Result({ answers, onRetake }: { answers: number[]; onRetake: () => void
   const game = gameMeta(persona.game);
   const GameIcon = game.icon;
 
+  // remembered on this device so your anonymous inbox page can show it
+  useEffect(() => {
+    savePersona({ title: persona.title, alias, tagline: persona.tagline, compliment: persona.compliment });
+  }, [persona, alias]);
+
+  async function storyCard() {
+    try {
+      const blob = await renderPersonaCard({
+        title: persona.title,
+        alias,
+        tagline: persona.tagline,
+        compliment: persona.compliment,
+        link: window.location.host + "/vibe",
+      });
+      const res = await shareImage(blob, "afterhours-persona.png", `I'm ${persona.title} on Afterhours`, window.location.href);
+      if (res === "downloaded") toast.success("Saved. Add it to your story.");
+    } catch {
+      toast.error("Couldn't make the image");
+    }
+  }
+
   async function share() {
     const text = `I'm ${persona.title} — a.k.a. "${alias}" on Afterhours. ${persona.tagline} Find your vibe:`;
     const url = window.location.href;
@@ -164,13 +187,19 @@ function Result({ answers, onRetake }: { answers: number[]; onRetake: () => void
       </p>
 
       <div className="mt-8 flex flex-wrap gap-3">
-        <GlowButton onClick={share}>
-          <Share2 /> Share my vibe
+        <GlowButton onClick={storyCard}>
+          <ImageDown /> Share to story
         </GlowButton>
-        <Link href="/">
+        <GlowButton tone="ghost" onClick={share}>
+          <Share2 /> Copy text
+        </GlowButton>
+        <Link href="/inbox">
           <GlowButton tone="ghost">
-            Play with friends <ArrowRight />
+            Get anonymous messages <ArrowRight />
           </GlowButton>
+        </Link>
+        <Link href="/">
+          <GlowButton tone="ghost">Play with friends</GlowButton>
         </Link>
         <GlowButton tone="ghost" onClick={onRetake}>
           <RotateCcw /> Retake

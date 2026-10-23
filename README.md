@@ -16,6 +16,16 @@ Private party-game rooms for friends — anonymous votes, confessions, truths an
 
 Host controls: pick games, set the vibe, toggle author reveal, force-advance a round, kick players, return to lobby. If the host leaves, the longest-present player becomes host.
 
+## Beyond the rooms
+
+| Page | What it does |
+| --- | --- |
+| `/vibe` | 7-question persona quiz → title, alias, compliment, best game. Shareable as an Instagram-story-sized image. |
+| `/inbox` | NGL-style anonymous inbox. You get a link (`/u/yourname`) to post on your story; people send messages with no account; you read them and turn any into a story card. A one-time recovery key lets you get your inbox back on a new device. |
+| `/crush` | Crush compatibility links (`/c/xxxxxxxx`). A friend enters their name and their crush's name, gets a fun score, and the link's owner sees the entries. The page tells the friend, before they submit, that the owner will see the names. |
+
+Senders' identities are never returned by any API, including to the inbox/link owner. Messages are rate-limited (5 per sender per hour per inbox).
+
 ## Setup (≈5 minutes)
 
 ### 1. Create a Supabase project
@@ -31,7 +41,9 @@ Either paste each file into **SQL Editor** in order, or use the CLI (`supabase l
 
 1. [`supabase/migrations/0001_schema.sql`](supabase/migrations/0001_schema.sql) — tables, RLS, realtime publication
 2. [`supabase/migrations/0002_functions.sql`](supabase/migrations/0002_functions.sql) — all game logic (RPCs) + privilege lockdown
-3. [`supabase/migrations/0003_seed_prompts.sql`](supabase/migrations/0003_seed_prompts.sql) — question bank (add your own rows any time)
+3. [`supabase/migrations/0003_seed_prompts.sql`](supabase/migrations/0003_seed_prompts.sql) — question bank + the "friendly" vibe (add your own rows any time)
+4. [`supabase/migrations/0004_inbox.sql`](supabase/migrations/0004_inbox.sql) — anonymous inbox ("send me anonymous messages")
+5. [`supabase/migrations/0005_crush_links.sql`](supabase/migrations/0005_crush_links.sql) — crush compatibility links
 
 If the `supabase_realtime` publication didn't pick up the tables (Database → Replication), enable `rooms`, `players`, `rounds`, `round_submissions`. The app also polls every 6 s and refetches on focus, so it keeps working if realtime is off — just less snappy.
 

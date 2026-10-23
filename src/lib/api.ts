@@ -24,6 +24,20 @@ const ERRORS: Record<string, string> = {
   cannot_kick_self: "You can't kick yourself.",
   anon_disabled:
     "Guest sign-ins are off. In Supabase: Authentication → Sign In / Providers → enable “Allow anonymous sign-ins”.",
+  inbox_exists: "You already have an inbox.",
+  invalid_handle: "Use 3–20 letters, numbers or underscores.",
+  handle_reserved: "That name is reserved. Try another.",
+  handle_taken: "That name is taken. Try another.",
+  inbox_not_found: "That inbox doesn't exist.",
+  invalid_message: "Write something (up to 300 characters).",
+  slow_down: "You've sent a few already. Try again in a bit.",
+  inbox_busy: "This inbox is getting a lot of love. Try again later.",
+  invalid_prompt: "Keep the prompt under 80 characters.",
+  invalid_key: "That recovery key doesn't match.",
+  too_many_links: "You have the maximum of 5 links. Delete one first.",
+  invalid_names: "Enter both names (up to 30 characters each).",
+  link_not_found: "That link doesn't exist or was deleted.",
+  own_link: "This is your own link. Send it to a friend instead.",
   supabase_not_configured: "Supabase env vars are missing. See the README.",
 };
 
@@ -43,7 +57,90 @@ async function rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T
   return data as T;
 }
 
+export interface InboxSummary {
+  handle: string;
+  prompt: string;
+  persona_title: string | null;
+  persona_alias: string | null;
+  total: number;
+  unread: number;
+}
+export interface InboxMessage {
+  id: string;
+  body: string;
+  created_at: string;
+  unread: boolean;
+}
+export interface PublicInbox {
+  found: boolean;
+  handle?: string;
+  prompt?: string;
+  persona_title?: string | null;
+  persona_alias?: string | null;
+}
+
+export interface CrushLinkSummary {
+  slug: string;
+  label: string;
+  owner_name: string | null;
+  created_at: string;
+  total: number;
+  unread: number;
+}
+export interface CrushEntry {
+  id: string;
+  your_name: string;
+  crush_name: string;
+  score: number;
+  created_at: string;
+  unread: boolean;
+}
+export interface CrushResult {
+  score: number;
+  chemistry: number;
+  communication: number;
+  vibe: number;
+  your_name: string;
+  crush_name: string;
+}
+
 export const api = {
+  // ---- crush compatibility links ----
+  createCrushLink: (ownerName: string | null, label: string | null) =>
+    rpc<{ slug: string }>("create_crush_link", { p_owner_name: ownerName, p_label: label }),
+  myCrushLinks: () => rpc<CrushLinkSummary[]>("list_my_crush_links"),
+  publicCrushLink: (slug: string) =>
+    rpc<{ found: boolean; label?: string; owner_name?: string | null }>("get_crush_link_public", { p_slug: slug }),
+  submitCrush: (slug: string, yourName: string, crushName: string) =>
+    rpc<CrushResult>("submit_crush", { p_slug: slug, p_your_name: yourName, p_crush_name: crushName }),
+  crushEntries: (slug: string) => rpc<CrushEntry[]>("list_crush_entries", { p_slug: slug }),
+  markCrushRead: (slug: string) => rpc<void>("mark_crush_read", { p_slug: slug }),
+  deleteCrushEntry: (id: string) => rpc<void>("delete_crush_entry", { p_id: id }),
+  deleteCrushLink: (slug: string) => rpc<void>("delete_crush_link", { p_slug: slug }),
+
+  // ---- anonymous inbox ----
+  createInbox: (handle: string, prompt: string | null, persona?: { title?: string; alias?: string }) =>
+    rpc<{ handle: string; key: string }>("create_inbox", {
+      p_handle: handle,
+      p_prompt: prompt,
+      p_persona_title: persona?.title ?? null,
+      p_persona_alias: persona?.alias ?? null,
+    }),
+  myInbox: () => rpc<InboxSummary | null>("get_my_inbox"),
+  publicInbox: (handle: string) => rpc<PublicInbox>("get_inbox_public", { p_handle: handle }),
+  updateInbox: (u: { prompt?: string; personaTitle?: string; personaAlias?: string }) =>
+    rpc<void>("update_inbox", {
+      p_prompt: u.prompt ?? null,
+      p_persona_title: u.personaTitle ?? null,
+      p_persona_alias: u.personaAlias ?? null,
+    }),
+  sendMessage: (handle: string, body: string) => rpc<void>("send_message", { p_handle: handle, p_body: body }),
+  listMessages: () => rpc<InboxMessage[]>("list_messages", { p_limit: 100 }),
+  markRead: () => rpc<void>("mark_messages_read"),
+  deleteMessage: (id: string) => rpc<void>("delete_message", { p_id: id }),
+  claimInbox: (handle: string, key: string) => rpc<void>("claim_inbox", { p_handle: handle, p_key: key }),
+
+  // ---- rooms ----
   preview: (code: string) =>
     rpc<{ found: boolean; status?: string; player_count?: number; host_name?: string; full?: boolean }>(
       "room_preview",

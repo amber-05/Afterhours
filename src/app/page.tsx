@@ -82,6 +82,12 @@ function Landing() {
           <Link href="/vibe" className="eyebrow transition hover:text-foreground">
             Vibe check
           </Link>
+          <Link href="/inbox" className="eyebrow hidden transition hover:text-foreground sm:block">
+            Anonymous inbox
+          </Link>
+          <Link href="/crush" className="eyebrow hidden transition hover:text-foreground sm:block">
+            Crush check
+          </Link>
           <span className="eyebrow hidden sm:block">Private rooms · No sign-up</span>
         </div>
       </nav>
@@ -125,6 +131,36 @@ function Landing() {
                 <p className="font-heading mt-1 text-2xl">What&apos;s your after-dark persona?</p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Answer seven questions. Get a title, an alias, and a compliment you can screenshot.
+                </p>
+              </div>
+              <ArrowRight className="size-5 shrink-0 text-orchid transition group-hover:translate-x-1" />
+            </Link>
+          </motion.div>
+          <motion.div {...rise(0.42)} className="mt-3 max-w-md">
+            <Link
+              href="/inbox"
+              className="group flex items-center gap-4 rounded-2xl border border-orchid/30 bg-orchid/[0.06] p-5 transition hover:bg-orchid/10"
+            >
+              <div className="flex-1">
+                <p className="eyebrow text-orchid">New · Share on Instagram</p>
+                <p className="font-heading mt-1 text-2xl">Get anonymous messages</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Make a link, post it to your story, and read what friends really think.
+                </p>
+              </div>
+              <ArrowRight className="size-5 shrink-0 text-orchid transition group-hover:translate-x-1" />
+            </Link>
+          </motion.div>
+          <motion.div {...rise(0.48)} className="mt-3 max-w-md">
+            <Link
+              href="/crush"
+              className="group flex items-center gap-4 rounded-2xl border border-orchid/30 bg-orchid/[0.06] p-5 transition hover:bg-orchid/10"
+            >
+              <div className="flex-1">
+                <p className="eyebrow text-orchid">New · Crush check</p>
+                <p className="font-heading mt-1 text-2xl">Who are your friends into?</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Send a link. They enter their crush, get a compatibility score, and you see the names.
                 </p>
               </div>
               <ArrowRight className="size-5 shrink-0 text-orchid transition group-hover:translate-x-1" />

@@ -184,4 +184,86 @@ await rpc(U[1], "leave_room", code);
 rows = await db.query(`select count(*)::int c from public.rooms`);
 assert.equal(rows.rows[0].c, 0);
 console.log("rooms left:", rows.rows[0].c);
+
+// --- anonymous inbox
+await db.exec("reset role");
+const inbox = await rpc(U[0], "create_inbox", "Alice_NGL", "ask me anything", "The Warm Light", "Velvet Falcon");
+assert.equal(inbox.handle, "alice_ngl");
+assert.equal(inbox.key.length, 20);
+await fails(rpc(U[0], "create_inbox", "another", null, null, null), "inbox_exists");
+await fails(rpc(U[1], "create_inbox", "alice_ngl", null, null, null), "handle_taken");
+await fails(rpc(U[1], "create_inbox", "admin", null, null, null), "handle_reserved");
+await fails(rpc(U[1], "create_inbox", "x!", null, null, null), "invalid_handle");
+const pub = await rpc(U[3], "get_inbox_public", "ALICE_ngl");
+assert.equal(pub.found, true);
+assert.equal(pub.persona_alias, "Velvet Falcon");
+assert.equal((await rpc(U[3], "get_inbox_public", "nobody_here")).found, false);
+await fails(rpc(U[3], "send_message", "alice_ngl", "   "), "invalid_message");
+await fails(rpc(U[3], "send_message", "alice_ngl", "x".repeat(301)), "invalid_message");
+await fails(rpc(U[3], "send_message", "ghost_user", "hi"), "inbox_not_found");
+for (let i = 0; i < 5; i++) await rpc(U[3], "send_message", "alice_ngl", "you are great #" + i);
+await fails(rpc(U[3], "send_message", "alice_ngl", "one too many"), "slow_down");
+await rpc(U[1], "send_message", "alice_ngl", "from someone else");
+let mine = await rpc(U[0], "get_my_inbox");
+assert.equal(mine.total, 6);
+assert.equal(mine.unread, 6);
+let msgs = await rpc(U[0], "list_messages", 100);
+assert.equal(msgs.length, 6);
+assert.ok(msgs.every((m) => !("sender_user_id" in m) && !JSON.stringify(m).includes(U[3])), "sender leaked");
+await fails(rpc(U[3], "list_messages", 100), "inbox_not_found");
+await rpc(U[0], "mark_messages_read");
+assert.equal((await rpc(U[0], "get_my_inbox")).unread, 0);
+await rpc(U[3], "delete_message", msgs[0].id);          // not the owner: no-op
+assert.equal((await rpc(U[0], "list_messages", 100)).length, 6);
+await rpc(U[0], "delete_message", msgs[0].id);
+assert.equal((await rpc(U[0], "list_messages", 100)).length, 5);
+await rpc(U[0], "update_inbox", "new prompt", null, null);
+assert.equal((await rpc(U[3], "get_inbox_public", "alice_ngl")).prompt, "new prompt");
+// recovery on a new device
+await fails(rpc(U[2], "claim_inbox", "alice_ngl", "WRONGKEY"), "invalid_key");
+await rpc(U[2], "claim_inbox", "alice_ngl", inbox.key.toLowerCase().replace(/(.{5})/g, "$1-"));
+assert.equal((await rpc(U[2], "list_messages", 100)).length, 5);
+await fails(rpc(U[0], "list_messages", 100), "inbox_not_found");
+// lockdown
+await db.exec("set role authenticated");
+await fails(as(U[2], "select * from public.inbox_messages"), "permission denied");
+await fails(as(U[2], "select * from public.inboxes"), "permission denied");
+await fails(as(U[2], "insert into public.inbox_messages (inbox_id, sender_user_id, body) select id, gen_random_uuid(), 'x' from public.inboxes"), "permission denied");
+await db.exec("reset role");
+console.log("inbox OK");
+
+// --- crush links
+const link = await rpc(U[0], "create_crush_link", "Aman", null);
+assert.match(link.slug, /^[a-z0-9]{8}$/);
+const lp = await rpc(U[3], "get_crush_link_public", link.slug.toUpperCase());
+assert.equal(lp.found, true);
+assert.equal(lp.owner_name, "Aman");
+await fails(rpc(U[3], "submit_crush", link.slug, "", "Riya"), "invalid_names");
+await fails(rpc(U[3], "submit_crush", "nope1234", "Sam", "Riya"), "link_not_found");
+await fails(rpc(U[0], "submit_crush", link.slug, "Aman", "Riya"), "own_link");
+const r1 = await rpc(U[3], "submit_crush", link.slug, "Sam", "Riya");
+const r2 = await rpc(U[1], "submit_crush", link.slug, "riya", " sam ");
+assert.equal(r1.score, r2.score, "symmetric + case-insensitive");
+assert.ok(r1.score >= 52 && r1.score <= 99 && r1.chemistry >= 40 && r1.vibe <= 99);
+const ents = await rpc(U[0], "list_crush_entries", link.slug);
+assert.equal(ents.length, 2);
+assert.ok(ents.some((e) => e.your_name === "Sam" && e.crush_name === "Riya"));
+assert.ok(!JSON.stringify(ents).includes(U[3]) && !JSON.stringify(ents).includes(U[1]), "submitter leaked");
+await fails(rpc(U[3], "list_crush_entries", link.slug), "link_not_found");
+assert.equal((await rpc(U[0], "list_my_crush_links"))[0].unread, 2);
+await rpc(U[0], "mark_crush_read", link.slug);
+assert.equal((await rpc(U[0], "list_my_crush_links"))[0].unread, 0);
+await rpc(U[3], "delete_crush_entry", ents[0].id); // not owner: no-op
+assert.equal((await rpc(U[0], "list_crush_entries", link.slug)).length, 2);
+await rpc(U[0], "delete_crush_entry", ents[0].id);
+assert.equal((await rpc(U[0], "list_crush_entries", link.slug)).length, 1);
+for (let i = 0; i < 4; i++) await rpc(U[3], "submit_crush", link.slug, "Sam", "X" + i);
+await fails(rpc(U[3], "submit_crush", link.slug, "Sam", "Y"), "slow_down");
+await db.exec("set role authenticated");
+await fails(as(U[0], "select * from public.crush_entries"), "permission denied");
+await fails(as(U[0], "select * from public.crush_links"), "permission denied");
+await db.exec("reset role");
+await rpc(U[0], "delete_crush_link", link.slug);
+assert.equal((await rpc(U[0], "list_my_crush_links")).length, 0);
+console.log("crush OK");
 console.log("ALL OK");
