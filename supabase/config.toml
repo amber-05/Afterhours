@@ -1,0 +1,9 @@
+# Used by the Supabase CLI for local development (`supabase start`).
+project_id = "afterhours"
+
+[auth]
+enable_signup = true
+enable_anonymous_sign_ins = true   # guest sessions
+
+[realtime]
+enabled = true

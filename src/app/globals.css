@@ -1,0 +1,119 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-display);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+
+/* ---------------------------------------------------------------------------
+   Afterhours — late-night theme (always dark). Quiet surfaces, hairlines,
+   one orchid accent, a serif for the voice.
+   --------------------------------------------------------------------------- */
+:root {
+  --background: #14090f;
+  --foreground: #f7ece8;
+  --card: #1c0e16;
+  --card-foreground: #f7ece8;
+  --popover: #1c0e16;
+  --popover-foreground: #f7ece8;
+  --primary: #f0a3b5;
+  --primary-foreground: #2a0f1b;
+  --secondary: #26131f;
+  --secondary-foreground: #f7ece8;
+  --muted: #26131f;
+  --muted-foreground: #b39ca8;
+  --accent: #2f1a26;
+  --accent-foreground: #f7ece8;
+  --destructive: #f27a7a;
+  --border: rgb(255 255 255 / 0.08);
+  --input: rgb(255 255 255 / 0.12);
+  --ring: #f0a3b5;
+  --radius: 0.875rem;
+  --orchid: #f0a3b5;
+  --violet: #b9a6e8;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-orchid: var(--orchid);
+  --color-violet: var(--violet);
+  --animate-shimmer: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+  to { background-position: 200% center; }
+}
+
+@layer base {
+  html { background: var(--background); -webkit-tap-highlight-color: transparent; }
+  body { min-height: 100dvh; overflow-x: hidden; }
+  ::selection { background: rgb(240 163 181 / 0.35); }
+  .font-heading { font-weight: 400; letter-spacing: -0.02em; line-height: 1.02; }
+}
+
+@layer utilities {
+  /* surfaces (kept under the old class names so every screen picks them up) */
+  .glass {
+    background: rgb(255 255 255 / 0.03);
+    border: 1px solid rgb(255 255 255 / 0.08);
+  }
+  .surface-raised {
+    background: #241119;
+    border: 1px solid rgb(255 255 255 / 0.1);
+  }
+  .text-gradient { color: var(--orchid); font-style: italic; }
+  .bg-brand { background: var(--orchid); color: #2a0f1b; }
+  .glow-purple, .glow-pink { border-color: rgb(240 163 181 / 0.28); }
+  .eyebrow {
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+  .hairline { border-color: rgb(255 255 255 / 0.08); }
+}
