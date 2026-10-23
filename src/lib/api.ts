@@ -35,7 +35,7 @@ const ERRORS: Record<string, string> = {
   invalid_prompt: "Keep the prompt under 80 characters.",
   invalid_key: "That recovery key doesn't match.",
   too_many_links: "You have the maximum of 5 links. Delete one first.",
-  invalid_names: "Enter both names (up to 30 characters each).",
+  invalid_names: "Enter both names using English letters (up to 30 characters each).",
   link_not_found: "That link doesn't exist or was deleted.",
   own_link: "This is your own link. Send it to a friend instead.",
   supabase_not_configured: "Supabase env vars are missing. See the README.",
@@ -92,14 +92,17 @@ export interface CrushEntry {
   your_name: string;
   crush_name: string;
   score: number;
+  verdict: string | null;
   created_at: string;
   unread: boolean;
 }
 export interface CrushResult {
   score: number;
-  chemistry: number;
-  communication: number;
-  vibe: number;
+  /** T,R,U,E,L,O,V,E letter tallies across both names */
+  counts: number[];
+  /** every step of folding the tallies down to two digits */
+  rows: number[][];
+  flames: { code: string; label: string; remaining: number; eliminated: string[] };
   your_name: string;
   crush_name: string;
 }

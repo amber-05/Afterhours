@@ -244,7 +244,7 @@ await fails(rpc(U[0], "submit_crush", link.slug, "Aman", "Riya"), "own_link");
 const r1 = await rpc(U[3], "submit_crush", link.slug, "Sam", "Riya");
 const r2 = await rpc(U[1], "submit_crush", link.slug, "riya", " sam ");
 assert.equal(r1.score, r2.score, "symmetric + case-insensitive");
-assert.ok(r1.score >= 52 && r1.score <= 99 && r1.chemistry >= 40 && r1.vibe <= 99);
+assert.deepEqual(r1.flames, r2.flames);
 const ents = await rpc(U[0], "list_crush_entries", link.slug);
 assert.equal(ents.length, 2);
 assert.ok(ents.some((e) => e.your_name === "Sam" && e.crush_name === "Riya"));
@@ -259,11 +259,41 @@ await rpc(U[0], "delete_crush_entry", ents[0].id);
 assert.equal((await rpc(U[0], "list_crush_entries", link.slug)).length, 1);
 for (let i = 0; i < 4; i++) await rpc(U[3], "submit_crush", link.slug, "Sam", "X" + i);
 await fails(rpc(U[3], "submit_crush", link.slug, "Sam", "Y"), "slow_down");
+
+// --- love calculator: compare against an independent JS implementation of the folk methods
+function refLove(x, y) {
+  const a = x.toLowerCase().replace(/[^a-z]/g, ""), b = y.toLowerCase().replace(/[^a-z]/g, "");
+  const both = a + b;
+  let cur = [..."TRUELOVE".toLowerCase()].map((ch) => both.split(ch).length - 1);
+  while (cur.length > 2) cur = cur.slice(1).map((v, i) => (cur[i] + v) % 10);
+  const score = cur[0] * 10 + cur[1];
+  let remain = 0;
+  for (let c = 97; c <= 122; c++) { const ch = String.fromCharCode(c); remain += Math.abs((a.split(ch).length - 1) - (b.split(ch).length - 1)); }
+  const n = remain === 0 ? a.length : remain;
+  let fl = ["F", "L", "A", "M", "E", "S"], idx = 0;
+  while (fl.length > 1) { idx = (idx + n - 1) % fl.length; fl.splice(idx, 1); if (idx >= fl.length) idx = 0; }
+  return { score, code: fl[0], remain };
+}
+const pairs = [["Sam", "Riya"], ["Rahul", "Priya"], ["Aarav", "Ananya"], ["John", "Jane"], ["Romeo", "Juliet"], ["Amy", "Ann"], ["Mary Jane", "Peter"], ["Sam", "Sam"]];
+const link2 = await rpc(U[0], "create_crush_link", "T", null);
+for (const [k, [x, y]] of pairs.entries()) {
+  const got = await rpc(U[1 + (k % 3)], "submit_crush", link2.slug, x, y);
+  const want = refLove(x, y);
+  assert.equal(got.score, want.score, x + "+" + y + " score");
+  assert.equal(got.flames.code, want.code, x + "+" + y + " flames");
+  assert.equal(got.flames.remaining, want.remain);
+  assert.equal(got.counts.length, 8);
+  assert.ok(got.score >= 0 && got.score <= 99);
+}
+await fails(rpc(U[3], "submit_crush", link2.slug, "12345", "Riya"), "invalid_names");
+await fails(rpc(U[3], "submit_crush", link2.slug, "Sam", "!!!"), "invalid_names");
+console.log("love calculator OK");
 await db.exec("set role authenticated");
 await fails(as(U[0], "select * from public.crush_entries"), "permission denied");
 await fails(as(U[0], "select * from public.crush_links"), "permission denied");
 await db.exec("reset role");
 await rpc(U[0], "delete_crush_link", link.slug);
+await rpc(U[0], "delete_crush_link", link2.slug);
 assert.equal((await rpc(U[0], "list_my_crush_links")).length, 0);
 console.log("crush OK");
 console.log("ALL OK");

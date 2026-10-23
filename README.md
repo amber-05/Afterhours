@@ -21,8 +21,8 @@ Host controls: pick games, set the vibe, toggle author reveal, force-advance a r
 | Page | What it does |
 | --- | --- |
 | `/vibe` | 7-question persona quiz → title, alias, compliment, best game. Shareable as an Instagram-story-sized image. |
-| `/inbox` | NGL-style anonymous inbox. You get a link (`/u/yourname`) to post on your story; people send messages with no account; you read them and turn any into a story card. A one-time recovery key lets you get your inbox back on a new device. |
-| `/crush` | Crush compatibility links (`/c/xxxxxxxx`). A friend enters their name and their crush's name, gets a fun score, and the link's owner sees the entries. The page tells the friend, before they submit, that the owner will see the names. |
+| `/inbox` | NGL-style anonymous inbox. You get a link (`/u/yourname`) to post on your story; people send messages with no account; you read them and turn any into a story card. Optional email backup: add your email once and sign back in from any device with a one-tap link, no code to remember. |
+| `/crush` | Love calculator links (`/c/xxxxxxxx`). A friend enters their name and their crush's name and gets a love percentage worked out with two classic name games: **True Love** (count the letters of T-R-U-E L-O-V-E across both names and fold the numbers down to two digits) and **FLAMES** (cross out shared letters, then eliminate F-L-A-M-E-S). The result page shows the working. The link's owner sees both names and the result. |
 
 Senders' identities are never returned by any API, including to the inbox/link owner. Messages are rate-limited (5 per sender per hour per inbox).
 
@@ -36,6 +36,9 @@ Senders' identities are never returned by any API, including to the inbox/link o
 Guest sessions are real Supabase anonymous users (a signed JWT in localStorage), which is what makes RLS and host permissions secure without accounts.
 *Recommended for production:* enable CAPTCHA (Authentication → Attack Protection) to stop mass guest-account creation.
 
+### 2b. Email backup (so inboxes survive a new phone)
+**Authentication → URL Configuration:** set **Site URL** to your deployed address (e.g. `https://your-app.vercel.app`) and add it, plus `http://localhost:3000`, under **Redirect URLs**. Make sure the **Email** provider is enabled. Supabase's built-in mailer is rate-limited, so add your own SMTP (Authentication → SMTP) before real traffic.
+
 ### 3. Run the migrations
 Either paste each file into **SQL Editor** in order, or use the CLI (`supabase link` then `supabase db push`):
 
@@ -43,7 +46,8 @@ Either paste each file into **SQL Editor** in order, or use the CLI (`supabase l
 2. [`supabase/migrations/0002_functions.sql`](supabase/migrations/0002_functions.sql) — all game logic (RPCs) + privilege lockdown
 3. [`supabase/migrations/0003_seed_prompts.sql`](supabase/migrations/0003_seed_prompts.sql) — question bank + the "friendly" vibe (add your own rows any time)
 4. [`supabase/migrations/0004_inbox.sql`](supabase/migrations/0004_inbox.sql) — anonymous inbox ("send me anonymous messages")
-5. [`supabase/migrations/0005_crush_links.sql`](supabase/migrations/0005_crush_links.sql) — crush compatibility links
+5. [`supabase/migrations/0005_crush_links.sql`](supabase/migrations/0005_crush_links.sql) — crush links
+6. [`supabase/migrations/0006_love_calculator.sql`](supabase/migrations/0006_love_calculator.sql) — FLAMES + True Love calculator
 
 If the `supabase_realtime` publication didn't pick up the tables (Database → Replication), enable `rooms`, `players`, `rounds`, `round_submissions`. The app also polls every 6 s and refetches on focus, so it keeps working if realtime is off — just less snappy.
 

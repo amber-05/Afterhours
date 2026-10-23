@@ -33,9 +33,6 @@ export function loadPersona(): SavedPersona | null {
   }
 }
 
-export const saveInboxKey = (key: string) => set("afterhours:inbox-key", key);
-export const loadInboxKey = () => get("afterhours:inbox-key");
-
 /** "Velvet Falcon" → "velvet_falcon" */
 export const slugify = (s: string) =>
   s

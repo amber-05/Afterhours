@@ -2,15 +2,16 @@
 
 import { useCallback, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Copy, ImageDown, KeyRound, Loader2, Share2, Trash2 } from "lucide-react";
+import { Check, Copy, ImageDown, Loader2, Share2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { GlowButton } from "@/components/glow-button";
+import { BackupCard, EmailSignIn } from "@/components/inbox/backup";
 import { PageNav, timeAgo } from "@/components/inbox/bits";
 import { SetupNotice } from "@/components/setup-notice";
 import { Input } from "@/components/ui/input";
 import { usePoll } from "@/hooks/use-poll";
 import { api, type InboxMessage, type InboxSummary } from "@/lib/api";
-import { loadInboxKey, loadPersona, saveInboxKey, slugify } from "@/lib/local-store";
+import { loadPersona, slugify } from "@/lib/local-store";
 import { renderLinkCard, renderMessageCard, shareImage } from "@/lib/share-card";
 import { ensureGuestSession, isSupabaseConfigured } from "@/lib/supabase";
 
@@ -62,26 +63,11 @@ function Setup({ onDone }: { onDone: () => Promise<void> }) {
   const [prompt, setPrompt] = useState("send me anonymous messages");
   const [busy, setBusy] = useState(false);
   const [recover, setRecover] = useState(false);
-  const [rHandle, setRHandle] = useState("");
-  const [rKey, setRKey] = useState("");
 
   async function create() {
     setBusy(true);
     try {
-      const res = await api.createInbox(handle, prompt, persona ? { title: persona.title, alias: persona.alias } : undefined);
-      saveInboxKey(res.key);
-      await onDone();
-    } catch (e) {
-      toast.error((e as Error).message);
-      setBusy(false);
-    }
-  }
-
-  async function claim() {
-    setBusy(true);
-    try {
-      await api.claimInbox(rHandle, rKey);
-      saveInboxKey(rKey);
+      await api.createInbox(handle, prompt, persona ? { title: persona.title, alias: persona.alias } : undefined);
       await onDone();
     } catch (e) {
       toast.error((e as Error).message);
@@ -133,33 +119,11 @@ function Setup({ onDone }: { onDone: () => Promise<void> }) {
             Create my link
           </GlowButton>
           <button onClick={() => setRecover(true)} className="eyebrow block w-full pt-1 text-center transition hover:text-foreground">
-            Already have a link? Recover it
+            Already have an inbox? Sign in with email
           </button>
         </div>
       ) : (
-        <div className="surface-raised mt-8 space-y-4 rounded-2xl p-6">
-          <p className="text-sm text-muted-foreground">
-            Enter your link name and the recovery key you saved when you created it.
-          </p>
-          <Input
-            value={rHandle}
-            onChange={(e) => setRHandle(e.target.value.toLowerCase().trim())}
-            placeholder="link name"
-            className="h-12 rounded-xl border-white/12 bg-transparent px-4 text-base"
-          />
-          <Input
-            value={rKey}
-            onChange={(e) => setRKey(e.target.value)}
-            placeholder="XXXXX-XXXXX-XXXXX-XXXXX"
-            className="h-12 rounded-xl border-white/12 bg-transparent px-4 font-mono text-base"
-          />
-          <GlowButton className="w-full" loading={busy} disabled={!rHandle || !rKey} onClick={claim}>
-            <KeyRound /> Recover my inbox
-          </GlowButton>
-          <button onClick={() => setRecover(false)} className="eyebrow block w-full text-center transition hover:text-foreground">
-            ← Create a new one
-          </button>
-        </div>
+        <EmailSignIn onBack={() => setRecover(false)} />
       )}
     </motion.section>
   );
@@ -169,8 +133,6 @@ function Setup({ onDone }: { onDone: () => Promise<void> }) {
 
 function Dashboard({ inbox, refresh }: { inbox: InboxSummary; refresh: () => Promise<void> }) {
   const [messages, setMessages] = useState<InboxMessage[] | null>(null);
-  const [key, setKey] = useState<string | null>(() => loadInboxKey());
-  const [showKey, setShowKey] = useState(false);
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
   const [prompt, setPrompt] = useState(inbox.prompt);
@@ -192,11 +154,6 @@ function Dashboard({ inbox, refresh }: { inbox: InboxSummary; refresh: () => Pro
   }, []);
 
   usePoll(fetchMessages, POLL_MS);
-
-  function dismissKey() {
-    saveInboxKey("");
-    setKey(null);
-  }
 
   async function copy() {
     try {
@@ -260,24 +217,7 @@ function Dashboard({ inbox, refresh }: { inbox: InboxSummary; refresh: () => Pro
         <h1 className="font-heading mt-2 text-5xl sm:text-6xl">Your inbox</h1>
       </header>
 
-      {key && (
-        <div className="rounded-2xl border border-orchid/30 bg-orchid/[0.06] p-5 text-sm">
-          <p className="font-medium">Save your recovery key</p>
-          <p className="mt-1 text-muted-foreground">
-            Your inbox is tied to this browser. If you switch phones or clear data, this key is the only way to get it
-            back. Screenshot it.
-          </p>
-          <button onClick={() => setShowKey((v) => !v)} className="eyebrow mt-3 text-orchid">
-            {showKey ? "Hide key" : "Show key"}
-          </button>
-          {showKey && (
-            <p className="mt-2 break-all font-mono text-base tracking-wider">{key.match(/.{1,5}/g)?.join("-")}</p>
-          )}
-          <button onClick={dismissKey} className="eyebrow ml-4 text-muted-foreground">
-            I saved it
-          </button>
-        </div>
-      )}
+      <BackupCard />
 
       <section className="surface-raised rounded-2xl p-5">
         <p className="eyebrow">Your link</p>

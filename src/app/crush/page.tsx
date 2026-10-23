@@ -77,16 +77,13 @@ function List({ links, onOpen, reload }: { links: CrushLinkSummary[]; onOpen: (s
   return (
     <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pt-6">
       <header>
-        <p className="eyebrow">Crush compatibility</p>
+        <p className="eyebrow">Love calculator</p>
         <h1 className="font-heading mt-3 text-balance text-[2.75rem] sm:text-6xl">
           Who&apos;s <span className="text-orchid italic">everyone</span> into?
         </h1>
         <p className="mt-4 max-w-md text-muted-foreground">
           Send a link. Your friend enters their own name and their crush&apos;s name to calculate a love percentage. You see
           both names and the score here.
-        </p>
-        <p className="mt-3 max-w-md text-sm text-muted-foreground">
-          The page tells them up front that you can see both names, so nobody gets surprised.
         </p>
       </header>
 
@@ -254,6 +251,7 @@ function Entries({ link, onBack, reload }: { link: CrushLinkSummary; onBack: () 
                       <span className="font-medium text-orchid">{e.crush_name}</span>
                     </p>
                     <p className="eyebrow mt-2">
+                      {e.verdict && <span className="mr-2 text-foreground">{e.verdict}</span>}
                       {e.unread && <span className="mr-2 text-orchid">New</span>}
                       {timeAgo(e.created_at)}
                     </p>
