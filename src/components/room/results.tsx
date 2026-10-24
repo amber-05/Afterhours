@@ -46,7 +46,15 @@ function Bars({ tally, highlight, unit = "vote" }: { tally: TallyEntry[]; highli
 }
 
 /** Who's Most Likely — verdict + bars. Voters are never shown. */
-export function VoteResults({ round }: { round: Round }) {
+export function VoteResults({
+  round,
+  eyebrow = "The room has spoken",
+  footnote = "Votes are anonymous — only the totals are shown.",
+}: {
+  round: Round;
+  eyebrow?: string;
+  footnote?: string;
+}) {
   const { playerById } = useRoomCtx();
   const winners = (round.payload.winners ?? []).map((id) => playerById(id)).filter(Boolean);
   const tally = round.payload.tally ?? [];
@@ -59,7 +67,7 @@ export function VoteResults({ round }: { round: Round }) {
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         className="border-y hairline py-10 text-center"
       >
-        <p className="eyebrow">The room has spoken</p>
+        <p className="eyebrow">{eyebrow}</p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-10">
           {winners.map((w) => (
             <div key={w!.id} className="flex flex-col items-center gap-3">
@@ -71,8 +79,30 @@ export function VoteResults({ round }: { round: Round }) {
         {winners.length > 1 && <p className="mt-4 text-sm text-muted-foreground">It&apos;s a tie.</p>}
       </motion.div>
       <Bars tally={tally} highlight={new Set(round.payload.winners ?? [])} />
-      <p className="text-center text-xs text-muted-foreground">Votes are anonymous — only the totals are shown.</p>
+      <p className="text-center text-xs text-muted-foreground">{footnote}</p>
     </div>
+  );
+}
+
+/** Friendship Test: shown only if you and someone else picked each other. Never shown publicly. */
+export function BondCard({ round }: { round: Round }) {
+  const { playerById } = useRoomCtx();
+  const friend = playerById(round.my_bond);
+  if (!friend) return null;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 1.1, duration: 0.6 }}
+      className="surface-raised flex items-center gap-4 rounded-2xl border-orchid/40 p-5"
+    >
+      <PlayerAvatar id={friend.id} emoji={friend.avatar} size="lg" />
+      <div>
+        <p className="eyebrow text-orchid">A mutual bond</p>
+        <p className="font-heading mt-1 text-3xl">You and {friend.name} picked each other.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Only the two of you can see this.</p>
+      </div>
+    </motion.div>
   );
 }
 

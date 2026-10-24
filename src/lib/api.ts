@@ -38,6 +38,8 @@ const ERRORS: Record<string, string> = {
   invalid_names: "Enter both names using English letters (up to 30 characters each).",
   link_not_found: "That link doesn't exist or was deleted.",
   own_link: "This is your own link. Send it to a friend instead.",
+  invalid_rounds: "Pick 1, 3, 4 or 5 rounds.",
+  series_complete: "That was the last round of this game.",
   supabase_not_configured: "Supabase env vars are missing. See the README.",
 };
 
@@ -156,14 +158,16 @@ export const api = {
   getState: (code: string) => rpc<RoomState>("get_room_state", { p_code: code }),
   leave: (code: string) => rpc<void>("leave_room", { p_code: code }),
   kick: (code: string, playerId: string) => rpc<void>("kick_player", { p_code: code, p_player: playerId }),
-  settings: (code: string, s: { vibe?: Vibe; revealAuthor?: boolean }) =>
+  settings: (code: string, s: { vibe?: Vibe; revealAuthor?: boolean; rounds?: number }) =>
     rpc<void>("update_settings", {
       p_code: code,
       p_vibe: s.vibe ?? null,
       p_reveal_author: s.revealAuthor ?? null,
+      p_rounds: s.rounds ?? null,
     }),
   startRound: (code: string, game: GameId | "room_decides") =>
     rpc<string>("start_round", { p_code: code, p_game: game }),
+  nextInSeries: (code: string) => rpc<string>("next_in_series", { p_code: code }),
   advance: (code: string) => rpc<void>("host_advance", { p_code: code }),
   endGame: (code: string) => rpc<void>("end_game", { p_code: code }),
   vote: (code: string, targetPlayerId: string) =>

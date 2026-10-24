@@ -6,7 +6,7 @@ import { gameMeta } from "@/lib/games";
 import type { Round } from "@/lib/types";
 import { HostBar } from "./host-bar";
 import { LockedNote, PlayerPicker, ProgressRow, TextPanel, Waiting } from "./panels";
-import { GuessResultCard, GuessScoreboard, ItemsReveal, VoteResults } from "./results";
+import { BondCard, GuessResultCard, GuessScoreboard, ItemsReveal, VoteResults } from "./results";
 import { useRoomCtx } from "./room-context";
 
 export function RoundView() {
@@ -24,7 +24,9 @@ export function RoundView() {
           <span className="flex items-center gap-2">
             <meta.icon className="size-3.5 text-orchid" strokeWidth={2} /> {meta.title}
           </span>
-          <span>Round {round.round_no}</span>
+          <span>
+            {round.series_total > 1 ? `Round ${round.series_no} of ${round.series_total}` : `Round ${round.round_no}`}
+          </span>
         </div>
 
         {showPrompt && (
@@ -80,6 +82,33 @@ function Body({ round }: { round: Round }) {
           confirmLabel="Lock in my vote"
           lockedTarget={mine?.target_player_id}
           lockedText="Vote locked in. Nobody will ever know it was you."
+          onConfirm={(id) => run(() => api.vote(code, id))}
+        />
+        <ProgressRow />
+      </>
+    );
+  }
+
+  // ---- Friendship Test ----
+  if (round.game === "friendship_test") {
+    if (round.phase === "reveal") {
+      return (
+        <>
+          <VoteResults
+            round={round}
+            eyebrow="The group's pick"
+            footnote="Picks are private. Only the totals are shown."
+          />
+          <BondCard round={round} />
+        </>
+      );
+    }
+    return (
+      <>
+        <PlayerPicker
+          confirmLabel="Lock in my pick"
+          lockedTarget={mine?.target_player_id}
+          lockedText="Locked in. Your pick stays private. If they picked you too, you'll both see it."
           onConfirm={(id) => run(() => api.vote(code, id))}
         />
         <ProgressRow />

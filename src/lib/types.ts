@@ -1,4 +1,4 @@
-export type GameId = "most_likely" | "confessions" | "truth_or_spill" | "guess_who";
+export type GameId = "most_likely" | "friendship_test" | "confessions" | "truth_or_spill" | "guess_who";
 export type Vibe = "friendly" | "fun" | "romantic" | "spicy" | "mixed";
 export type Phase = "collecting" | "guessing" | "reveal" | "finished";
 
@@ -51,6 +51,10 @@ export interface Round {
   cursor: number;
   payload: RoundPayload;
   is_my_statement: boolean;
+  series_no: number;
+  series_total: number;
+  /** Friendship Test: the player who also picked you (mutual), only ever shown to the two of you. */
+  my_bond: string | null;
 }
 
 export interface MyEntry {
@@ -67,6 +71,7 @@ export interface RoomState {
     vibe: Vibe;
     auto_rotate: boolean;
     reveal_author: boolean;
+    rounds_per_game: number;
     round_count: number;
   };
   me: Player;

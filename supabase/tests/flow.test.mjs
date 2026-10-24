@@ -296,4 +296,56 @@ await rpc(U[0], "delete_crush_link", link.slug);
 await rpc(U[0], "delete_crush_link", link2.slug);
 assert.equal((await rpc(U[0], "list_my_crush_links")).length, 0);
 console.log("crush OK");
+
+// --- series (rounds per game) + friendship test
+const { code: c2 } = await rpc(U[0], "create_room", "Host", "🦊");
+await rpc(U[1], "join_room", c2, "Bea", "🐼");
+await rpc(U[2], "join_room", c2, "Cy", "🦄");
+let q = await state(U[0], c2);
+assert.equal(q.room.rounds_per_game, 3);
+const [h, b, cy] = q.players.map((p) => p.id);
+await fails(rpc(U[1], "update_settings", c2, null, null, 5), "not_host");
+await fails(rpc(U[0], "update_settings", c2, null, null, 2), "invalid_rounds");
+await rpc(U[0], "update_settings", c2, null, null, 4);
+assert.equal((await state(U[0], c2)).room.rounds_per_game, 4);
+await rpc(U[0], "update_settings", c2, null, null, 3);
+
+await rpc(U[0], "start_round", c2, "confessions");
+for (let n = 1; n <= 3; n++) {
+  q = await state(U[0], c2);
+  assert.equal(q.round.series_no, n);
+  assert.equal(q.round.series_total, 3);
+  assert.equal(q.round.game, "confessions");
+  for (let k = 0; k < 3; k++) await rpc(U[k], "submit_entry", c2, "secret " + n + k, null, true);
+  assert.equal((await state(U[0], c2)).round.phase, "reveal");
+  if (n < 3) {
+    await fails(rpc(U[1], "next_in_series", c2), "not_host");
+    await rpc(U[0], "next_in_series", c2);
+  }
+}
+await fails(rpc(U[0], "next_in_series", c2), "series_complete");
+const prompts = new Set();
+// all three rounds used different prompts
+const pr = await db.query("select prompt from public.rounds r join public.rooms o on o.id = r.room_id where o.code = $1", [c2]);
+pr.rows.forEach((x) => prompts.add(x.prompt));
+assert.equal(prompts.size, 3);
+
+// friendship test: mutual picks are private to the two people involved
+await rpc(U[0], "start_round", c2, "friendship_test");
+q = await state(U[0], c2);
+assert.equal(q.round.game, "friendship_test");
+await rpc(U[0], "submit_entry", c2, null, b, true);   // Host -> Bea
+await rpc(U[1], "submit_entry", c2, null, h, true);   // Bea  -> Host   (mutual)
+await fails(rpc(U[2], "submit_entry", c2, null, cy, true), "invalid_target");
+await rpc(U[2], "submit_entry", c2, null, b, true);   // Cy   -> Bea    (not mutual)
+const sh = await state(U[0], c2), sb = await state(U[1], c2), sc = await state(U[2], c2);
+assert.equal(sh.round.phase, "reveal");
+assert.equal(sh.round.my_bond, b);
+assert.equal(sb.round.my_bond, h);
+assert.equal(sc.round.my_bond, null, "non-mutual pick must not be revealed");
+assert.deepEqual(sh.round.payload.winners, [b]);
+assert.equal(sh.round.payload.tally[0].votes, 2);
+for (const st of [sh, sb, sc]) assert.ok(!JSON.stringify(st.round.payload).includes("bond"));
+assert.equal((await state(U[2], c2)).round.my_bond, null);
+console.log("series + friendship OK");
 console.log("ALL OK");

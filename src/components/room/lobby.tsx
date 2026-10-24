@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { Switch } from "@/components/ui/switch";
 import { api } from "@/lib/api";
-import { VIBES } from "@/lib/games";
+import { ROUND_OPTIONS, VIBES } from "@/lib/games";
 import { inviteLink } from "@/lib/invite";
 import { cn } from "@/lib/utils";
 import { GamePicker } from "./game-picker";
@@ -123,7 +123,32 @@ export function Lobby() {
             </button>
           ))}
         </div>
-        <label className="mt-4 flex items-center justify-between gap-4 rounded-2xl border hairline px-4 py-3.5">
+        <div className="mt-4 flex items-center justify-between gap-4 rounded-2xl border hairline px-4 py-3.5">
+          <span>
+            <span className="block text-sm font-medium">Rounds per game</span>
+            <span className="block text-sm text-muted-foreground">Each game runs this many rounds in a row.</span>
+          </span>
+          <div className="flex gap-1.5">
+            {ROUND_OPTIONS.map((n) => (
+              <button
+                key={n}
+                disabled={!isHost || busy}
+                onClick={() => run(() => api.settings(code, { rounds: n }))}
+                aria-pressed={state.room.rounds_per_game === n}
+                className={cn(
+                  "size-9 rounded-full border text-sm transition",
+                  state.room.rounds_per_game === n
+                    ? "border-orchid bg-orchid/15 text-orchid"
+                    : "hairline text-muted-foreground",
+                  isHost && state.room.rounds_per_game !== n && "hover:bg-white/[0.06] hover:text-foreground",
+                )}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
+        <label className="mt-3 flex items-center justify-between gap-4 rounded-2xl border hairline px-4 py-3.5">
           <span>
             <span className="block text-sm font-medium">Reveal authors in Guess Who</span>
             <span className="block text-sm text-muted-foreground">Off keeps every statement a mystery.</span>

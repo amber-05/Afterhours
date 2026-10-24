@@ -11,10 +11,11 @@ Private party-game rooms for friends — anonymous votes, confessions, truths an
 | 👀 **Who's Most Likely?** | Everyone votes for a friend (friendly / fun / romantic / spicy). Auto-reveals when all votes are in. Only totals are shown — never who voted for whom. |
 | 🤫 **Anonymous Confessions** | Everyone submits a secret; they're shuffled and revealed one at a time with no authors. |
 | 🫗 **Truth or Spill** | Answer a question anonymously *or* publicly (per-answer toggle). |
+| 🤝 **Friendship Test** | An emotional statement ("Who would you trust with your biggest secret?"). Everyone picks a friend privately; the group sees only totals. If two people picked each other, only those two see a "mutual bond" card. Non-mutual picks are never revealed. |
 | 🕵️ **Guess Who?** | Everyone writes a statement; the room guesses the author of each. Host can hide authors entirely. |
 | 🎲 **The Room Decides** | Auto-rotates between games (least-played first, never the same twice in a row) with a 15 s countdown between rounds. |
 
-Host controls: pick games, set the vibe, toggle author reveal, force-advance a round, kick players, return to lobby. If the host leaves, the longest-present player becomes host.
+Every game can run for **1, 3, 4 or 5 rounds** in a row (host setting). Host controls: pick games, set the vibe, toggle author reveal, force-advance a round, kick players, return to lobby. If the host leaves, the longest-present player becomes host.
 
 ## Beyond the rooms
 
@@ -48,6 +49,7 @@ Either paste each file into **SQL Editor** in order, or use the CLI (`supabase l
 4. [`supabase/migrations/0004_inbox.sql`](supabase/migrations/0004_inbox.sql) — anonymous inbox ("send me anonymous messages")
 5. [`supabase/migrations/0005_crush_links.sql`](supabase/migrations/0005_crush_links.sql) — crush links
 6. [`supabase/migrations/0006_love_calculator.sql`](supabase/migrations/0006_love_calculator.sql) — FLAMES + True Love calculator
+7. [`supabase/migrations/0007_series_and_friendship_test.sql`](supabase/migrations/0007_series_and_friendship_test.sql) — multi-round series (1/3/4/5 rounds per game) + the Friendship Test game
 
 If the `supabase_realtime` publication didn't pick up the tables (Database → Replication), enable `rooms`, `players`, `rounds`, `round_submissions`. The app also polls every 6 s and refetches on focus, so it keeps working if realtime is off — just less snappy.
 
@@ -99,3 +101,6 @@ npm run lint && npm run build
 1. Add its id to the `check` constraints in `rooms/rounds/prompts` and seed prompts.
 2. Add branches in `_advance` / `submit_entry` (SQL) for its collect → reveal flow.
 3. Add metadata in `src/lib/games.ts` and a body in `src/components/room/round-view.tsx`.
+
+## Music
+By default the site plays a composed, vibe-aware synth loop. For real music, drop royalty-free `.mp3` files named `friendly`, `fun`, `romantic` and `spicy` into `public/music/`; they take over automatically. See [public/music/README.md](public/music/README.md).

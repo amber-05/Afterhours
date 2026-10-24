@@ -1,4 +1,4 @@
-import { Eye, Lock, MessagesSquare, Search, Shuffle, type LucideIcon } from "lucide-react";
+import { Eye, HeartHandshake, Lock, MessagesSquare, Search, Shuffle, type LucideIcon } from "lucide-react";
 import type { GameId, Vibe } from "./types";
 
 export interface GameMeta {
@@ -15,6 +15,13 @@ export const GAMES: GameMeta[] = [
     title: "Who's Most Likely?",
     icon: Eye,
     tagline: "Vote in secret. The room's verdict is public.",
+    min: 3,
+  },
+  {
+    id: "friendship_test",
+    title: "Friendship Test",
+    icon: HeartHandshake,
+    tagline: "Who would you trust most? Picks stay private. Mutual ones glow.",
     min: 3,
   },
   {
@@ -60,3 +67,5 @@ export const VIBES: { id: Vibe; label: string }[] = [
 export const AVATARS = ["🦊", "🐼", "🦄", "🐙", "🐸", "🦋", "🐯", "🐲", "👻", "🦉", "🐺", "🪩"];
 
 export const MAX_TEXT = 280;
+
+export const ROUND_OPTIONS = [1, 3, 4, 5] as const;
