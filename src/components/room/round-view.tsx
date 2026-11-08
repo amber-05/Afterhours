@@ -6,7 +6,7 @@ import { gameMeta } from "@/lib/games";
 import type { Round } from "@/lib/types";
 import { HostBar } from "./host-bar";
 import { LockedNote, PlayerPicker, ProgressRow, TextPanel, Waiting } from "./panels";
-import { BondCard, GuessResultCard, GuessScoreboard, ItemsReveal, VoteResults } from "./results";
+import { BondCard, GuessResultCard, GuessScoreboard, HotTakeResults, ItemsReveal, VoteResults } from "./results";
 import { useRoomCtx } from "./room-context";
 
 export function RoundView() {
@@ -111,6 +111,32 @@ function Body({ round }: { round: Round }) {
           lockedText="Locked in. Your pick stays private. If they picked you too, you'll both see it."
           onConfirm={(id) => run(() => api.vote(code, id))}
         />
+        <ProgressRow />
+      </>
+    );
+  }
+
+  // ---- Hot Takes ----
+  if (round.game === "hot_takes") {
+    if (round.phase === "reveal") return <HotTakeResults round={round} />;
+    const side = mine?.content;
+    return (
+      <>
+        {side ? (
+          <LockedNote>Locked in. Nobody sees your side unless you&apos;re the only one on it.</LockedNote>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {(["agree", "disagree"] as const).map((s) => (
+              <button
+                key={s}
+                onClick={() => run(() => api.takeSide(code, s))}
+                className="glass rounded-2xl p-6 text-lg font-semibold capitalize transition hover:border-orchid/60 hover:bg-orchid/10"
+              >
+                {s === "agree" ? "🔥 Agree" : "🧊 Disagree"}
+              </button>
+            ))}
+          </div>
+        )}
         <ProgressRow />
       </>
     );

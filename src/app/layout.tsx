@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { Ambient } from "@/components/ambient";
 import { MusicToggle } from "@/components/music-toggle";
+import { ADSENSE_CLIENT } from "@/lib/ads";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -32,6 +34,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="relative z-10 flex flex-1 flex-col">{children}</div>
         <MusicToggle />
         <Toaster theme="dark" position="top-center" />
+        {ADSENSE_CLIENT && (
+          <Script
+            async
+            strategy="afterInteractive"
+            crossOrigin="anonymous"
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
+          />
+        )}
       </body>
     </html>
   );

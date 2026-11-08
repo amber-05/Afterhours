@@ -84,6 +84,67 @@ export function VoteResults({
   );
 }
 
+/** Hot Takes — the split, plus the lone wolf (if there is one). Individual votes stay private. */
+export function HotTakeResults({ round }: { round: Round }) {
+  const { playerById } = useRoomCtx();
+  const agree = round.payload.agree ?? 0;
+  const disagree = round.payload.disagree ?? 0;
+  const total = Math.max(1, agree + disagree);
+  const wolf = playerById(round.payload.lone_wolf ?? null);
+  const rows = [
+    { label: "🔥 Agree", n: agree, hot: agree >= disagree },
+    { label: "🧊 Disagree", n: disagree, hot: disagree > agree },
+  ];
+
+  return (
+    <div className="space-y-5">
+      <ul className="space-y-2.5">
+        {rows.map((r, i) => (
+          <motion.li
+            key={r.label}
+            initial={{ opacity: 0, x: -16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 + i * 0.1 }}
+            className="glass relative overflow-hidden rounded-2xl"
+          >
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${(r.n / total) * 100}%` }}
+              transition={{ delay: 0.5 + i * 0.1, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+              className={cn("absolute inset-y-0 left-0", r.hot ? "bg-orchid/35" : "bg-white/[0.07]")}
+            />
+            <div className="relative flex items-center justify-between p-4">
+              <span className="font-semibold">{r.label}</span>
+              <span className="tabular-nums text-white/80">
+                {r.n} · {Math.round((r.n / total) * 100)}%
+              </span>
+            </div>
+          </motion.li>
+        ))}
+      </ul>
+      {wolf && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.2, duration: 0.6 }}
+          className="surface-raised flex items-center gap-4 rounded-2xl border-orchid/40 p-5"
+        >
+          <PlayerAvatar id={wolf.id} emoji={wolf.avatar} size="lg" />
+          <div>
+            <p className="eyebrow text-orchid">Lone wolf 🐺</p>
+            <p className="font-heading mt-1 text-3xl">
+              {wolf.name} was the only one to {round.payload.lone_side}.
+            </p>
+          </div>
+        </motion.div>
+      )}
+      <p className="text-center text-xs text-muted-foreground">
+        Votes are anonymous, unless you stand completely alone.
+      </p>
+    </div>
+  );
+}
+
 /** Friendship Test: shown only if you and someone else picked each other. Never shown publicly. */
 export function BondCard({ round }: { round: Round }) {
   const { playerById } = useRoomCtx();

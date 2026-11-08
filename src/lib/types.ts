@@ -1,4 +1,4 @@
-export type GameId = "most_likely" | "friendship_test" | "confessions" | "truth_or_spill" | "guess_who";
+export type GameId = "most_likely" | "friendship_test" | "confessions" | "truth_or_spill" | "guess_who" | "hot_takes";
 export type Vibe = "friendly" | "fun" | "romantic" | "spicy" | "mixed";
 export type Phase = "collecting" | "guessing" | "reveal" | "finished";
 
@@ -33,6 +33,11 @@ export interface RoundPayload {
   tally?: TallyEntry[];
   winners?: string[];
   total_votes?: number;
+  // hot_takes
+  agree?: number;
+  disagree?: number;
+  lone_wolf?: string | null;
+  lone_side?: "agree" | "disagree" | null;
   // confessions / truth_or_spill
   items?: RevealItem[];
   // guess_who

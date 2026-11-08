@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { ArrowRight } from "lucide-react";
+import { AdSlot } from "@/components/ads/ad-slot";
 import { Input } from "@/components/ui/input";
 import { GlowButton } from "@/components/glow-button";
 import { ProfileFields } from "@/components/profile-fields";
@@ -206,6 +207,8 @@ function Landing() {
           </motion.section>
         )}
       </div>
+
+      <AdSlot placement="home" className="mx-auto mt-16 max-w-3xl" />
     </main>
   );
 }

@@ -1,4 +1,4 @@
-import { Eye, HeartHandshake, Lock, MessagesSquare, Search, Shuffle, type LucideIcon } from "lucide-react";
+import { Eye, Flame, HeartHandshake, Lock, MessagesSquare, Search, Shuffle, type LucideIcon } from "lucide-react";
 import type { GameId, Vibe } from "./types";
 
 export interface GameMeta {
@@ -44,6 +44,13 @@ export const GAMES: GameMeta[] = [
     icon: Search,
     tagline: "Whose statement is it? Trust no one.",
     min: 2,
+  },
+  {
+    id: "hot_takes",
+    title: "Hot Takes 18+",
+    icon: Flame,
+    tagline: "Steamy takes. Agree or disagree in secret. Don't be the lone wolf.",
+    min: 3,
   },
   {
     id: "room_decides",

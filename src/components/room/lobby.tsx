@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Crown, Share2, X } from "lucide-react";
 import { toast } from "sonner";
+import { AdSlot } from "@/components/ads/ad-slot";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { Switch } from "@/components/ui/switch";
 import { api } from "@/lib/api";
@@ -164,6 +165,8 @@ export function Lobby() {
       <Section n="03" title={isHost ? "Pick a game" : "Waiting for the host to pick"}>
         <GamePicker />
       </Section>
+
+      <AdSlot placement="lobby" />
     </div>
   );
 }

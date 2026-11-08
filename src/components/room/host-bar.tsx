@@ -12,7 +12,7 @@ import { useRoomCtx } from "./room-context";
 const AUTO_SECONDS = 15;
 
 export function roundComplete(r: Round) {
-  if (r.game === "most_likely" || r.game === "friendship_test") return r.phase === "reveal";
+  if (r.game === "most_likely" || r.game === "friendship_test" || r.game === "hot_takes") return r.phase === "reveal";
   if (r.game === "guess_who") return r.phase === "finished";
   return r.phase === "reveal" && r.cursor >= (r.payload.items?.length ?? 0);
 }

@@ -172,6 +172,8 @@ export const api = {
   endGame: (code: string) => rpc<void>("end_game", { p_code: code }),
   vote: (code: string, targetPlayerId: string) =>
     rpc<void>("submit_entry", { p_code: code, p_target: targetPlayerId }),
+  takeSide: (code: string, side: "agree" | "disagree") =>
+    rpc<void>("submit_entry", { p_code: code, p_content: side }),
   submitText: (code: string, content: string, anonymous = true) =>
     rpc<void>("submit_entry", { p_code: code, p_content: content, p_anonymous: anonymous }),
 };
